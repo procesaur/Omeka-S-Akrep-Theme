@@ -1,0 +1,201 @@
+<?php
+/**
+ * @var \Laminas\View\Renderer\PhpRenderer $this
+ * @var \Omeka\Api\Representation\SiteRepresentation $site
+ * @var \AdvancedSearch\Api\Representation\SearchConfigRepresentation $searchConfig
+ * @var \AdvancedSearch\Api\Representation\SearchConfigRepresentation $searchPage Alias of $searchConfig
+ * @var \AdvancedSearch\Query $query
+ * @var \AdvancedSearch\Response $response
+ * @var string $title
+ * @var string $resourceName
+ */
+
+$resources = $response->getResources($resourceName);
+// A check is done: when page is not first, the resources may be empty even with results.
+if (!$resources) return;
+
+$plugins = $this->getHelperPluginManager();
+$escape = $plugins->get('escapeHtml');
+$assetUrl = $plugins->get('assetUrl');
+$translate = $plugins->get('translate');
+$hyperlink = $plugins->get('hyperlink');
+$thumbnail = $plugins->get('thumbnail');
+
+// Can be simplified in a public theme.
+$setting = $plugins->get(isset($site) ? 'siteSetting' : 'setting');
+
+$siteSlug = isset($site) ? $site->slug() : null;
+
+$filterLocale = (bool) $setting('filter_locale_values');
+$siteLang = $plugins->get('lang')();
+$lang = $filterLocale ? $siteLang : null;
+$langValue = $filterLocale ? [$siteLang, ''] : null;
+$untitled = $translate('[Untitled]');
+
+$headingTerm = $setting('browse_heading_property_term');
+$bodyTerm = $setting('browse_body_property_term');
+
+$gridListMode = $searchConfig ? $searchConfig->subSetting('display', 'grid_list_mode', 'auto') : 'auto';
+
+$defaultThumbnail = '<img src="' . $assetUrl('thumbnails/default.png', 'Omeka', true) . '" title="' . $translate('No media') . '"/>';
+
+
+// SOLR SNIPPETS PREP
+$searchValue = $this->escapeHtml($this->params()->fromQuery('q', ''));
+$snippets = $this->themeSetting('snippets');
+$full_desc = $this->themeSetting('full_desc');
+if ($searchValue){
+	if ($snippets){
+		try{	
+			#try getting core and client
+			$solrCore = $this->api()->read('solr_cores', 1)->getContent();
+			$client = $solrCore->solariumClient();
+		}
+		catch (UnauthorizedAccess) {
+			$snippets = false;
+		}
+		try{
+			# try ping
+			$query = $client->createPing();
+			$client->ping($query);
+		}	
+		catch (SolariumException $e) {
+			$snippets = false;
+			echo $e->getMessage();
+		}
+		
+		
+		$hlfield = "media_txt";
+		$query = $client->createSelect();
+		$query->setFields(array('id'));
+		$query->setQuery($hlfield.":".$searchValue);
+		// get highlighting component and apply settings
+		$hl = $query->getHighlighting();
+		$hl->setFields(array($hlfield));
+		$hl->setFragSize(300);
+		$hl->setSnippets(3);
+		$hl->setFragmentsBuilder('colored');
+		$hl->setHighlightMultiTerm(true);
+		//$hl->setMethod('fastVector');
+		//$hl->setTagPrefix('<b style="background-color:'.$this->themeSetting('bar_color').'">');
+		//$hl->setTagPostfix('</b>');
+
+
+	}
+}
+else{$snippets=false;}
+
+?>
+
+<?php if ($title): ?>
+<h3><?= $escape($title) ?></h3>
+<?php endif; ?>
+
+<ul class="resource-list search-results-list<?= $gridListMode === 'list_only' ? ' list' : ($gridListMode === 'grid_only' ? ' grid' : '') ?>">
+    <?php /** @var \Omeka\Api\Representation\AbstractResourceEntityRepresentation $resource */
+		foreach ($resources as $resource):
+
+
+        // Can be simplified in the public theme.
+		$id = $resource->id();
+        $resourceUrl = $site ? $resource->siteUrl($siteSlug) : $resource->adminUrl($siteSlug);
+        $resourceType = $resource->resourceName();
+        $resourceThumbnail = $thumbnail($resource, 'medium') ?: $defaultThumbnail;
+        $heading = $headingTerm ? $resource->value($headingTerm, ['lang' => $langValue]) : null;
+        $heading = $heading ? $heading->asHtml() : $escape($resource->displayTitle($untitled, $lang));
+
+		if($full_desc){
+			if ($resource->value('dcterms:subject')){
+			$keywords = explode(", ",str_replace("|",", ",$resource->value('dcterms:subject')));
+			$output = array_map(function($val) { return "<a href='indeks?q=dcterms_subject_t%3A\"".$val."\"'>".$val."</a>"; }, $keywords);
+			$keyws = join(", ",$output);
+			}else{
+				$keyws = "";
+			}
+			
+			if ($resource->value('dcterms:creator')){
+			$creators = explode(", ",str_replace("|",", ",$resource->value('dcterms:creator')));
+			$output = array_map(function($val) { return "<a href='indeks?q=&limit[item_set_txt_sort][0]=".$val."'>".$val."</a>"; }, $creators);
+			$auths = join(", ",$output);
+			}else{
+				$auths = "";
+			}
+			
+			if ($resource->value('dcterms:abstract')){
+			$abstractf = explode(" ", $resource->value('dcterms:abstract'));
+			if (count($abstractf)>80){
+				$abstractf = array_slice($abstractf, 0 ,79);
+				$abstractf[] = "...";
+				}
+			$abstracts = implode(" ", $abstractf);
+			}else{
+				$abstracts = "";
+			}
+		}
+		else{
+			$body = $bodyTerm ? $resource->value($bodyTerm, ['lang' => $langValue]) : null;
+            $body = $body ? $body->asHtml() : $escape($resource->displayDescription(null, $lang));
+		}
+    ?>
+
+    <li class="resource <?= $resourceType ?>">
+        <div class="resource-thumbnail">
+            <?= $hyperlink->raw($resourceThumbnail, $resourceUrl, ['class' => 'resource-link']) ?>
+        </div>
+        <div class="resource-metadata">
+            <h4>
+				<?= $resource->linkRaw($heading) ?> 
+				<button type='button' class="cite_button" onclick='cite("item<?php echo $id;?>")'>
+					<?php echo $translate('cite'); ?>
+				</button>
+			</h4>
+			<?php if($full_desc){ ?>
+			<div class="creators"><?php echo $auths. " (" . $resource->value('dcterms:issued') .")"; ?> 	
+			
+			</div>
+			<div class="abstract"><?php echo $abstracts; ?></div>
+			<div class="keywords"><?php echo $keyws; ?></div>
+   
+			<?php }else{ ?>
+            <div class="description">
+                <?php echo $body; ?>
+            </div>
+			<?php }?>
+			<div class="snippets">
+				<?php			
+					if ($snippets){			
+						try{
+							$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
+							$resultset = $client->select($query);
+							$highlighting = $resultset->getHighlighting();
+							$snips = [];
+							// show documents using the resultset iterator
+							foreach ($resultset as $document) {
+						
+								// highlighting results can be fetched by document id (the field defined as uniquekey in this schema)
+								$highlightedDoc = $highlighting->getResult($document->id);
+								if($highlightedDoc){
+									$snips = $highlightedDoc->getField($hlfield);
+								}								
+							}
+						}
+						catch (UnauthorizedAccess) {
+							$snips = [];
+						}
+						foreach($snips as $snip){
+							echo "... ".$snip." ...<br/><hr/>";
+						}
+					}
+				?>
+			</div>
+			<div class='citex' style='display:none' id='item<?php echo $id;?>'>
+				<?php echo $this->citation($resource);?>
+			</div>
+        </div>
+    </li>
+
+    <?php endforeach; ?>
+</ul>
+				<button type='button' class="export_button" onclick='export_all()' id="export_all">
+					<?php echo $translate('export'); ?>
+				</button>

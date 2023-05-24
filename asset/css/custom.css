@@ -1,0 +1,141 @@
+			#content{
+				background-color: #ffffff91;
+				line-height:25px;
+				
+			}
+			
+			.site-title img{
+				height:40px;
+				position: absolute;
+				margin-left: 0px
+			}
+			
+			
+			.search-results-header{
+				white-space: nowrap
+			}
+			
+			#search{
+				position: initial;
+				float: right;
+				left: unset;
+				min-width: 350px;
+				background-color: #ffffff59;
+				margin-right: 20px
+				}
+				
+			.search-pagination-per-page label, .search-sort label{
+				line-height: 45px;
+				
+			}
+				
+			nav {
+				float:left;
+				margin:0px 50px;
+				padding:0px 0px;
+				z-index:99;
+				background-color:#ffffff00
+
+			}
+			
+			ul.navigation{
+				padding-left: 100px;
+				white-space: nowrap
+			}
+			
+			nav.pagination{
+				margin-bottom:0px
+			}
+			
+			nav.closed{
+
+				margin-top: 75px
+			}
+			
+			nav li{
+				background-color: #ffffff5e;
+				border-radius: 20px
+			}
+			
+			
+			.form-search .field:first-of-type, .breadcrumbs, #search-page h2, .search-facets h3, .search-results h3{
+				display:none
+			}
+			
+			.form-search .field{
+				margin:5px;
+				padding: 0px
+			}
+			
+			.form-search .field-meta, .form-search .inputs input {
+				margin:0px;
+				padding: 0px;
+				height: unset
+			}
+
+			.search-facets{
+				font-size:11pt;
+				
+				min-width: 360px !important
+			}
+			
+			.search-facets h4{
+				font-size:13pt;
+				margin-bottom:5px
+			}
+			
+			.search-results h4{
+				font-size:14pt;
+				margin-bottom:5px
+			}
+			
+			#advanced-search-form-wrapper {
+				padding-top:5px;
+				display:none
+			}
+			
+			
+			button.adv-button::before {
+				content: "➕";
+				position: absolute;
+				top: -5pt;
+				left: 0;
+				right: 0;
+				text-align: center;
+				text-indent: 0;
+				line-height: 45px;
+				font-size: 15px;	
+			}
+			
+			button.adv-button{
+				width: 30px;
+				height: 30px;
+				position: relative
+			}
+			
+			.snippets{
+				font-size:11pt;
+				border-top: solid 2px black
+			}
+			
+			.creators, .keywords{
+				font-size:12pt;
+				font-style: italic;
+				font-weight:bold
+			}
+			
+			
+			.abstract{
+				font-size:12pt;
+				text-align: justify;
+			}
+			
+			.cite_button{
+				padding:0px 5px;
+				font-size:unset;
+				line-height:unset
+			}
+			
+			.export_button{
+				float: right
+			}
