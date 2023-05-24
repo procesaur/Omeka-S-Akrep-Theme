@@ -39,11 +39,17 @@ $gridListMode = $searchConfig ? $searchConfig->subSetting('display', 'grid_list_
 
 $defaultThumbnail = '<img src="' . $assetUrl('thumbnails/default.png', 'Omeka', true) . '" title="' . $translate('No media') . '"/>';
 
+$pagename = $this->themeSetting('searchpage');
 
 // SOLR SNIPPETS PREP
 $searchValue = $this->escapeHtml($this->params()->fromQuery('q', ''));
+if(strpos($searchValue, ":") !== false){
+    $searchValue = explode(":", $searchValue)[1];
+}
+
 $snippets = $this->themeSetting('snippets');
 $full_desc = $this->themeSetting('full_desc');
+
 if ($searchValue){
 	if ($snippets){
 		try{	
@@ -104,7 +110,10 @@ else{$snippets=false;}
 		if($full_desc){
 			if ($resource->value('dcterms:subject')){
 			$keywords = explode(", ",str_replace("|",", ",$resource->value('dcterms:subject')));
-			$output = array_map(function($val) { return "<a href='indeks?q=dcterms_subject_t%3A\"".$val."\"'>".$val."</a>"; }, $keywords);
+			$output = array();
+			foreach ($keywords as $val){
+				$output[] = "<a href='".$pagename."?q=dcterms_subject_txt:".$val."'>".$val."</a>";
+			}
 			$keyws = join(", ",$output);
 			}else{
 				$keyws = "";
@@ -112,7 +121,10 @@ else{$snippets=false;}
 			
 			if ($resource->value('dcterms:creator')){
 			$creators = explode(", ",str_replace("|",", ",$resource->value('dcterms:creator')));
-			$output = array_map(function($val) { return "<a href='indeks?q=&limit[item_set_txt_sort][0]=".$val."'>".$val."</a>"; }, $creators);
+			$output = array();
+			foreach ($creators as $val){
+				$output[] = "<a href='".$pagename."?q=dcterms_creator_txt:".$val."'>".$val."</a>";
+			}
 			$auths = join(", ",$output);
 			}else{
 				$auths = "";
