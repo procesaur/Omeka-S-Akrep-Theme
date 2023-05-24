@@ -79,24 +79,34 @@ function lastx(x, now, yf){
 
 
 function cite(id){
-	var itemx = document.getElementById(id);
-	
-	
-	if (confirm(itemx.firstChild.innerHTML)){ 
 
+	var itemx = document.getElementById(id);
+
+	if (confirm(itemx.firstChild.textContent)){ 
+	
 	}
 	
 	//prompt("Copy to clipboard: Ctrl+C, Enter", item);
 	//alert(item.innerHTML);
 	 //if (item.style.display == "none"){item.style.display = "block";}
 	// else {item.style.display = "none";}
+}
+
+function export_all(){
+	var exp = "";
+	$(".citation").each(function() {
+	  exp += $(this).text() + "<br/><br/>";
+	});
 	
+	var tab = window.open('about:blank', '_blank');
+tab.document.write(exp); // where 'html' is a variable containing your HTML
+tab.document.close();
+
 }
 
 
 function getdoi(){
-
-			
+	
 	var doi = document.getElementById("doiinp").value;
 
 	var myHeaders = new Headers();

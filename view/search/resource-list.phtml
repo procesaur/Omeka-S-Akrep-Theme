@@ -64,7 +64,6 @@ if ($searchValue){
 			echo $e->getMessage();
 		}
 		
-		
 		$hlfield = "media_txt";
 		$query = $client->createSelect();
 		$query->setFields(array('id'));
@@ -76,11 +75,9 @@ if ($searchValue){
 		$hl->setSnippets(3);
 		$hl->setFragmentsBuilder('colored');
 		$hl->setHighlightMultiTerm(true);
-		//$hl->setMethod('fastVector');
+		$hl->setMethod('fastVector');
 		//$hl->setTagPrefix('<b style="background-color:'.$this->themeSetting('bar_color').'">');
 		//$hl->setTagPostfix('</b>');
-
-
 	}
 }
 else{$snippets=false;}
@@ -188,14 +185,13 @@ else{$snippets=false;}
 					}
 				?>
 			</div>
-			<div class='citex' style='display:none' id='item<?php echo $id;?>'>
-				<?php echo $this->citation($resource);?>
+			<div class='citex' style='display:none' id='item<?php echo $id;?>'><?php echo $this->citation($resource);?>
 			</div>
         </div>
     </li>
 
     <?php endforeach; ?>
 </ul>
-				<button type='button' class="export_button" onclick='export_all()' id="export_all">
-					<?php echo $translate('export'); ?>
-				</button>
+<button type='button' class="export_button" onclick='export_all()' id="export_all">
+	<?php echo $translate('export citations'); ?>
+</button>
