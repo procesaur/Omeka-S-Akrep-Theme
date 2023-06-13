@@ -170,9 +170,10 @@ else{$snippets=false;}
                 <?php echo $body; ?>
             </div>
 			<?php }?>
-			<div class="snippets">
-				<?php			
-					if ($snippets){			
+			<?php	
+				
+					if ($snippets){
+				
 						try{
 							$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
 							$resultset = $client->select($query);
@@ -191,12 +192,17 @@ else{$snippets=false;}
 						catch (UnauthorizedAccess) {
 							$snips = [];
 						}
-						foreach($snips as $snip){
-							echo "... ".$snip." ...<br/><hr/>";
+						if($snips){
+							echo "<div class='snippets'>";
+							foreach($snips as $snip){
+								echo "... ".$snip." ...<br/><hr/>";
+							}
+							echo "</div>";
 						}
+
 					}
 				?>
-			</div>
+			
 			<div class='citex' style='display:none' id='item<?php echo $id;?>'><?php echo $this->citation($resource);?>
 			</div>
         </div>
