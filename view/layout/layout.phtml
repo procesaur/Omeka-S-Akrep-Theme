@@ -1,12 +1,16 @@
 <?php
+
 $escape = $this->plugin('escapeHtml');
+$translate = $this->plugin('translate');
 $siteTitle = $site->title();
 $this->htmlElement('html')->setAttribute('lang', $this->lang());
 $this->headMeta()->setCharset('utf-8');
 $this->headMeta()->appendName('viewport', 'width=device-width, initial-scale=1');
-$this->headTitle($siteTitle)->setSeparator(' · ');
+$this->headTitle($siteTitle)->setSeparator(" ".$this->themeSetting('char')." ");
 $this->headTitle()->append($this->setting('installation_title', 'Omeka S'));
+$this->headLink()->prependStylesheet($this->assetUrl('css/custom.css'));
 $this->headLink()->prependStylesheet($this->assetUrl('css/style.css'));
+
 $this->headLink()->prependStylesheet($this->assetUrl('css/iconfonts.css', 'Omeka'));
 $this->headLink()->prependStylesheet('//fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic,700italic,700');
 $this->headScript()->prependFile($this->assetUrl('js/default.js'));
@@ -17,8 +21,15 @@ $banner = $this->themeSettingAssetUrl('banner');
 $bannerHeight = $this->themeSetting('banner_height');
 $bannerHeightMobile = $this->themeSetting('banner_height_mobile');
 $bannerPosition = ($this->themeSetting('banner_position')) ? str_replace('_','-', $this->themeSetting('banner_position')) : 'center';
+
 $this->trigger('view.layout');
 $userBar = $this->userBar();
+
+$doifill_on = $this->themeSetting('doifill');
+$prompts_map = $this->themeSetting('prompts');
+$content = $this->content;
+
+
 ?>
 <?php echo $this->doctype(); ?>
 <?php echo $this->htmlElement('html'); ?>
@@ -30,7 +41,7 @@ $userBar = $this->userBar();
         <?php echo $this->headScript(); ?>
         
         <style>
-            <?php if ($accentColor = $this->themeSetting('accent_color')): ?>
+			<?php if ($accentColor = $this->themeSetting('accent_color')): ?>
             a:link,
             a:visited {
                 color: <?php echo $accentColor; ?>
@@ -43,10 +54,7 @@ $userBar = $this->userBar();
             }
             <?php endif; ?>
 
-            .banner {
-                height: <?php echo ($bannerHeight !== '') ? $bannerHeight: 'auto'  ?>;
-                align-items: <?php echo $bannerPosition; ?>;
-            }
+ 
             <?php if ($bannerHeightMobile !== ''): ?>
                 @media screen and (max-width:640px) {
                     .banner {
@@ -54,6 +62,45 @@ $userBar = $this->userBar();
                     }
                 }
             <?php endif; ?>
+			
+			#user-bar .admin:not(:last-child)::after {
+				content: "<?php echo $this->themeSetting('char');?>";
+				
+			}
+			
+			#user-bar {
+				background-color: <?php echo $this->themeSetting('bar_color');?>;
+			}
+			
+			body {
+				background-image: url("<?php echo $this->themeSettingAssetUrl('background'); ?>");
+			}
+			
+			#user-bar a{
+				color: <?php echo $this->themeSetting('barfontcolor');?>;
+			}
+			
+			header {
+				width:100%;
+				<?php if ($banner): ?>
+				background-image: url("<?php echo $this->themeSettingAssetUrl('banner'); ?>");
+				<?php endif; ?>;
+				height: <?php echo $bannerHeight; ?>;
+				background-color: #fff;
+				margin-bottom: 55px
+			}
+			
+			
+			.resource.items{
+				margin:0px !important;
+				padding: 30px 5px
+			}
+			
+			.resource.items:nth-child(even){
+				background-color:<?php echo $this->themeSetting('bar_color');?>20;
+			
+			}
+		
         </style>
     </head>
 
@@ -61,34 +108,27 @@ $userBar = $this->userBar();
         <a id="skipnav" href="#content"><?php echo $this->translate('Skip to main content'); ?></a>
         <?php echo $userBar; ?>
         <header>
-            <h1 class="site-title">
-                <a href="<?php echo $site->url(); ?>">
-                <?php if ($this->themeSetting('logo')): ?>
-                    <img src="<?php echo $this->themeSettingAssetUrl('logo'); ?>" alt="<?php echo $escape($siteTitle); ?>" />
-                <?php else: ?>
-                    <?php echo $escape($siteTitle); ?>
-                <?php endif; ?>
-                </a>
-            </h1>
-            <div id="search">
+
+			<nav>
+				<a class="site-title" href="<?php echo $site->url(); ?>">
+				<?php if ($this->themeSetting('logo')): ?>
+				<img  src="<?php echo $this->themeSettingAssetUrl('logo'); ?>" alt="<?php echo $escape($siteTitle); ?>" />
+				<?php else: ?>
+				<?php echo $escape($siteTitle); ?>
+				<?php endif; ?>
+				</a>
+				
+				<?php echo $site->publicNav()->menu()->renderMenu(null, ['maxDepth' => $this->themeSetting('nav_depth') - 1]);
+				?>
+			</nav>
+			<div id="search">
                 <?php echo $this->partial('common/search-form'); ?>
             </div>
 
-            <nav>
-            <?php
-            echo $site->publicNav()->menu()->renderMenu(null, [
-                'maxDepth' => $this->themeSetting('nav_depth') - 1
-            ]);
-            ?>
-            </nav>
         </header>
-        <?php if ($banner): ?>
-        <div class="banner">
-            <img src="<?php echo $this->themeSettingAssetUrl('banner'); ?>" title="Banner">
-        </div>
-        <?php endif; ?>
+          
         <div id="content" role="main">
-            <?php echo $this->content; ?>
+            <?php echo $content; ?>
         </div>
         <footer>
             <?php if ($footerContent = $this->themeSetting('footer')): ?>
@@ -97,5 +137,80 @@ $userBar = $this->userBar();
                 <?php echo $this->translate('Powered by Omeka S'); ?>
             <?php endif; ?>
         </footer>
-    </body>
+	
+
+	
+	<span id="collecting_extend">
+		
+		<?php 
+		if($doifill_on > 0){ ?>
+		<div style="float: right; white-space: nowrap; visibility: visible;" id="unesidoi">
+			<input type="text" placeholder="Унеси DOI" id="doiinp" style="width:400px" value="">
+			<button type="button" onclick="getdoi()">Добави податке</button>
+			<button type="button"><a target="_blank" href="http://proref.rcub.bg.ac.rs/">Провери категорију (ПроРеф)</a></button>
+		</div>
+
+		<?php } ?>
+		
+		
+	</span>
+    
+	</body>
+	<script>
+    $(document).ready(function(){  
+		$("#advanced").click(function(){
+          $("#advanced-search-form-wrapper").toggle();
+        });
+		
+		
+		$.each($("[name^='prompt_']"), function(){
+			this.className = this.name.split("__")[1];
+			this.name = this.name.split("__")[0];
+		});
+
+		<?php if($doifill_on > 0){
+		echo "let prompt_map = [";
+		
+		$pml = explode("\n", str_replace("\r", "", $prompts_map));
+		foreach ($pml as $pm){
+			$pme = explode(",", $pm);
+			echo "['".$pme[0]."','".$pme[1]."'],";
+		}
+		echo "];";		
+		?> 
+		prompt_map.forEach((x) => {
+			$('[name='+x[0]+']').addClass(x[1]);	  
+		});
+		<?php } ?> 	
+
+		if($(".citex").length == 0) {
+		  $("#export_all").remove();
+		  
+		}
+		else{
+		$('#export_all').insertAfter($('.search-sort'));
+		}
+		
+		if($(".collecting-form-select").length == 0) {
+		  $("#collecting_extend").remove();
+		}
+		else{
+			$('.collecting-form').hide();
+			$('.collecting-form-select').hide();
+			var x = document.getElementsByClassName("user-id").length;
+			if(x ==0){
+				$('.collecting-form').hide();
+				alert("Пријавите се како бисте додали рад.");	
+			}
+			else{
+				$('.collecting-form-select').show();
+				$('.sform').show();
+			}
+			$('#collecting_extend').insertAfter($('.collecting-form-select'));
+		}
+	
+      });
+	
+    </script>
+
 </html>

@@ -177,8 +177,16 @@ else{$snippets=false;}
 						$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
 						$resultset = $client->select($query);
 						$private = False;
-						if ($resultset->getDocuments()[0]["private_media"]){
-							$private = array_sum($resultset->getDocuments()[0]["private_media"])>0;
+						try{
+							if ($resultset->getDocuments()){
+								
+								if ($resultset->getDocuments()[0]["private_media"]){
+									$private = array_sum($resultset->getDocuments()[0]["private_media"])>0;
+								}
+							}
+						}
+						catch(UnauthorizedAccess) {
+							$private = False;
 						}
 						if (!$private){
 							$highlighting = $resultset->getHighlighting();

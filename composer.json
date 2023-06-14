@@ -1,5 +1,5 @@
 {
-    "name": "omeka-s-themes/default",
+    "name": "omeka-s-themes/akrep",
     "type": "omeka-s-theme",
     "require": {
         "omeka/omeka-s": "*"

@@ -3,7 +3,18 @@ $translate = $this->plugin('translate');
 $searchValue = $this->escapeHtml($this->params()->fromQuery('q', ''));
 ?>  
 
-<form method="GET" id="form-search2"  action="/s/repo/<?php echo $this->themeSetting('searchpage'); ?>">	
+
+<script>
+function checkaction(){
+	var search = document.getElementById("form-search");
+	var def = document.getElementById("form-search2");
+	if (search != null){
+		def.action = search.action;
+	}
+}
+</script>
+
+<form method="GET" id="form-search2" onload='checkaction' action="<?php echo $this->themeSetting('searchpage'); ?>">	
 	<input type="text" name="q" id="q2" data-type-field="q" value="<?php echo $searchValue; ?>" placeholder="<?php echo $translate('Search'); ?>">
 	<button type="submit" name="submit" id="submit2" class="search-submit" value=""></button>
 	<button type="button" id="advanced" class="adv-button" value=""></button> 					
