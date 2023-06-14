@@ -1,14 +1,14 @@
 {
-  "name": "akrep",
-  "version": "1.0.0",
-  "description": "AkRep theme for Omeka-S-based active repositories",
+  "name": "default",
+  "version": "1.7.1",
+  "description": "The default theme for Omeka S.",
   "main": "gulpfile.js",
   "scripts": {
     "test": "test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/procesaur/akrep-omeka-s-theme.git"
+    "url": "git+https://github.com/omeka-s-themes/default.git"
   },
   "keywords": [
     "omeka-s",
@@ -17,9 +17,9 @@
   "author": "RRCHNM",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/procesaur/akrep-omeka-s-theme/issues"
+    "url": "https://github.com/omeka-s-themes/default/issues"
   },
-  "homepage": "https://github.com/procesaur/akrep-omeka-s-theme#readme",
+  "homepage": "https://github.com/omeka-s-themes/default#readme",
   "devDependencies": {
     "autoprefixer": "^9.2.1",
     "gulp": "^4.0.2",

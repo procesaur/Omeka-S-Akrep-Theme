@@ -72,7 +72,7 @@ if ($searchValue){
 		
 		$hlfield = "media_txt";
 		$query = $client->createSelect();
-		$query->setFields(array('id'));
+		$query->setFields(array('id', 'private_media'));
 		$query->setQuery($hlfield.":".$searchValue);
 		// get highlighting component and apply settings
 		$hl = $query->getHighlighting();
@@ -170,13 +170,17 @@ else{$snippets=false;}
                 <?php echo $body; ?>
             </div>
 			<?php }?>
-			<?php	
-				
-					if ($snippets){
-				
-						try{
-							$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
-							$resultset = $client->select($query);
+			<?php		
+				if ($snippets){
+			
+					try{
+						$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
+						$resultset = $client->select($query);
+						$private = False;
+						if ($resultset->getDocuments()[0]["private_media"]){
+							$private = array_sum($resultset->getDocuments()[0]["private_media"])>0;
+						}
+						if (!$private){
 							$highlighting = $resultset->getHighlighting();
 							$snips = [];
 							// show documents using the resultset iterator
@@ -189,19 +193,22 @@ else{$snippets=false;}
 								}								
 							}
 						}
-						catch (UnauthorizedAccess) {
+						else{
 							$snips = [];
 						}
-						if($snips){
-							echo "<div class='snippets'>";
-							foreach($snips as $snip){
-								echo "... ".$snip." ...<br/><hr/>";
-							}
-							echo "</div>";
-						}
-
 					}
-				?>
+					catch (UnauthorizedAccess) {
+						$snips = [];
+					}
+					if($snips){
+						echo "<div class='snippets'>";
+						foreach($snips as $snip){
+							echo "... ".$snip." ...<br/><hr/>";
+						}
+						echo "</div>";
+					}
+				}
+			?>
 			
 			<div class='citex' style='display:none' id='item<?php echo $id;?>'><?php echo $this->citation($resource);?>
 			</div>

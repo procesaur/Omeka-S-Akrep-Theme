@@ -118,9 +118,15 @@
 				border-top: solid 2px black
 			}
 			
-			.creators, .keywords{
-				font-size:12pt;
+			.creators{
+				font-size:13pt;
 				font-style: italic;
+				font-weight:bold
+			}
+			
+			.keywords{
+				font-size:12pt;
+				
 				font-weight:bold
 			}
 			
