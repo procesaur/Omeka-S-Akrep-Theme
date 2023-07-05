@@ -1,13 +1,17 @@
-# Default
-## Copyright
-Default is Copyright © 2016-present Corporation for Digital Scholarship, Vienna, Virginia, USA http://digitalscholar.org
+# AkRep
+Theme for Omeka-S-based advanced active repositories
 
-The Corporation for Digital Scholarship distributes the Omeka source code
-under the GNU General Public License, version 3 (GPLv3). The full text
-of this license is given in the license file.
 
-The Omeka name is a registered trademark of the Corporation for Digital Scholarship.
+## Functionalities
+Show SolR snippets for each item (when query is submitted) - Requires SearchSolr plugin
+Show Details for each item (Creators, abstract, subject...)
+When submitting a collecting item, fill the inputs using a DOI reference
 
-Third-party copyright in this distribution is noted where applicable.
 
-All rights not expressly granted are reserved.
+## Decorations
+Set user bar color
+Set user bar font color
+Set breadcrumb characther
+Set site logo image
+Set site banner image
+Set site background image

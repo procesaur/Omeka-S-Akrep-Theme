@@ -27,6 +27,16 @@
             $(this).toggleClass('open').toggleClass('closed');
         });
         
+		$('.media-render').each(function() {
+			var a = $(this).children('a').first()
+			var href = a.attr('href')
+            var ifrm = prepareFrame($(this), href);
+			$(this).append(ifrm);
+			a.html(href);
+        });
+		
+		
+		
         var expandString = Omeka.jsTranslate('Expand');
         var collapseString = Omeka.jsTranslate('Collapse');
 
@@ -57,6 +67,16 @@
         fixIframeAspect();
     });
 })(jQuery);
+
+
+    function prepareFrame(e, src) {
+        var ifrm = document.createElement("iframe");
+        ifrm.setAttribute("src", src);
+        ifrm.style.width = "100%";
+        ifrm.style.height = "600px";
+		ifrm.setAttribute("allowfullscreen", "");
+        return ifrm;
+    }
 
 
 function lastx(x, now, yf){

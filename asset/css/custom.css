@@ -219,4 +219,20 @@
 				float: right
 			}
 			
+			.collecting-form input[type=text], .collecting-form textarea, .collecting-form select{
+				width:650px
+				
+			}
+			
+			body.item-set #content .metadata~* {
+				width:100% !important
+			}
+			
+			body.item-set #search-page h2 {
+				display:block
+			}
+			
+			body.item-set #search-page h3 {
+				display:none
+			}
 }
