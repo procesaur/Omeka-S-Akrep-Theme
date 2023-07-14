@@ -235,4 +235,9 @@
 			body.item-set #search-page h3 {
 				display:none
 			}
+			
+			body.item.resource.show > #content > h3{
+				display:none
+			}
+
 }
