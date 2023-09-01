@@ -87,7 +87,7 @@ if ($searchValue){
 	}
 }
 else{$snippets=false;}
-
+$anycite=false;
 ?>
 
 <?php if ($title): ?>
@@ -145,6 +145,17 @@ else{$snippets=false;}
 			$body = $bodyTerm ? $resource->value($bodyTerm, ['lang' => $langValue]) : null;
             $body = $body ? $body->asHtml() : $escape($resource->displayDescription(null, $lang));
 		}
+		
+			
+		try{
+			$ccc = $this->citation($resource);
+			$anycite=true;
+		}
+		catch (Exception $e) {
+			$ccc = "";
+		}
+		
+		
     ?>
 
     <li class="resource <?= $resourceType ?>">
@@ -154,9 +165,14 @@ else{$snippets=false;}
         <div class="resource-metadata">
             <h4>
 				<?= $resource->linkRaw($heading) ?> 
-				<button type='button' class="cite_button" onclick='cite("item<?php echo $id;?>")'>
-					<?php echo $translate('cite'); ?>
-				</button>
+				<?php if ($ccc!=""){
+					?>
+						<button type='button' class="cite_button" onclick='cite("item<?php echo $id;?>")'>
+							<?php echo $translate('cite'); ?>
+						</button>
+					<?php
+				}
+				?>
 			</h4>
 			<?php if($full_desc){ ?>
 			<div class="creators"><?php echo $auths. " (" . $resource->value('dcterms:issued') .")"; ?> 	
@@ -174,6 +190,7 @@ else{$snippets=false;}
 				if ($snippets){
 			
 					try{
+						$query->removeFilterQuery('id');
 						$query->createFilterQuery('id')->setQuery(sprintf('id:items/%07s', $id));		
 						$resultset = $client->select($query);
 						$private = False;
@@ -216,15 +233,20 @@ else{$snippets=false;}
 						echo "</div>";
 					}
 				}
-			?>
 			
-			<div class='citex' style='display:none' id='item<?php echo $id;?>'><?php echo $this->citation($resource);?>
-			</div>
+			if ($ccc!=""){
+				echo "<div class='citex' style='display:none' id='item$id'>$ccc</div>";
+			}
+			
+			?>	
+
         </div>
     </li>
 
     <?php endforeach; ?>
 </ul>
+<?php if ($anycite==true){ ?>
 <button type='button' class="export_button" onclick='export_all()' id="export_all">
 	<?php echo $translate('export citations'); ?>
 </button>
+<?php } ?>
