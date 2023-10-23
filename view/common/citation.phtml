@@ -70,25 +70,59 @@ else:
         $citation .= $creator;
     }
 
-    $title = $resource->displayTitle();
-    $citation .= ($citation ? ', ' : '') . '“' . $title . '”';
 
     $source = $resource->value('dcterms:source') ?: @$defaults['dcterms:source'][0]['@value'];
-    if ($source):
-        $citation .= ', <i>' . $source . '</i>';
+    $title = $resource->displayTitle();
+	$number = $resource->value('rgf:bibliographicCitationIssue') ?: @$defaults['rgf:bibliographicCitationIssue'][0]['@value'];
+	$volume = $resource->value('rgf:bibliographicCitationVolume') ?: @$defaults['rgf:bibliographicCitationVolume'][0]['@value'];
+	$date = $resource->value('dcterms:issued') ?: @$defaults['dcterms:issued'][0]['@value'];
+	$page = $resource->value('rgf:bibliographicCitationSpage') ?: @$defaults['rgf:bibliographicCitationSpage'][0]['@value'];
+	$topage = $resource->value('rgf:bibliographicCitationEpage') ?: @$defaults['rgf:bibliographicCitationEpage'][0]['@value'];
+	$doi = $resource->value('bibo:doi') ?: @$defaults['bibo:doi'][0]['@value'];
+	
+	
+	if ($source):
+		$citation .= ($citation ? '. ' : '') . '"' . $title . '"';
+        $citation .= ' in <i>' . $source . '</i>';
+	else:
+		$citation .= ($citation ? '. ' : '') . '<i>' . $title . '</i>';
     endif;
 
+	if ($volume):
+		$citation .= ' ' . $volume;
+	endif;
+	
+	if ($number):
+		$citation .= ' no. ' . $number;
+	endif;
+	
+	
 
     $publisher = $resource->value('dcterms:publisher') ?: @$defaults['dcterms:publisher'][0]['@value'];
     if ($publisher):
-        $citation .= ', ' . $publisher . '';
+        $citation .= ', ' . $publisher;
     endif;
 
-    $date = $resource->value('dcterms:date') ?: @$defaults['dcterms:date'][0]['@value'];
-    if ($date):
-        $citation .= ', ' . $date;
+	if ($date):
+		if ($source):
+			$citation .= ' (' . $date. ')';
+		else:
+			$citation .= ', ' . $date;
+		endif;
     endif;
-
+	
+	if ($page):
+		$citation .= ': ' . $page;
+		if ($topage):
+		$citation .= '-' . $topage;
+		endif;
+	endif;
+	
+	
+	if ($doi):
+        $citation .= '. https://doi.org/' . $doi;
+    endif;
+    
 endif;
 
 $append_date = false;
