@@ -14,6 +14,9 @@
 $plugins = $this->getHelperPluginManager();
 $translate = $plugins->get('translate');
 $escape = $plugins->get('escapeHtml');
+$api = $this->api();
+//$response = $api->read('item-sets', 853);
+
 
 if (is_null($style)):
     $style = 'chicago-fullnote-bibliography';
@@ -46,9 +49,18 @@ else:
 
     $citation = '';
 
-    $creators = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][0]['@value'] ? [$defaults['dcterms:creator'][0]['@value']] : []);
+    $creators = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][2]['@value'] ? [$defaults['dcterms:creator'][2]['@value']] : []);
     // Strip formatting and remove empty creator elements.
+	
     $creators = array_values(array_filter(array_map('strip_tags', $creators)));
+	
+	foreach($creators as $k=>$c){
+		if (strpos($c, "item-set/")){
+			$id = explode("item-set/", $c)[1];
+			$creators[$k] = $api->read('item_sets', $id )->getContent()->value('dcterms:title');
+		}
+	}
+	
     if ($creators) {
         switch (count($creators)):
         case 1:
