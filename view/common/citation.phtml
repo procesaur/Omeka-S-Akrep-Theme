@@ -18,6 +18,22 @@ $api = $this->api();
 //$response = $api->read('item-sets', 853);
 
 
+
+function trans($x){
+	$cyr = array('а','б','в','г','д','ђ','е','ж','з','и','ј','к','л','љ','м','н','њ','о','п','р','с','т','ћ','у','ф','х','ц','ч','џ','ш','А','Б','В','Г','Д','Ђ','Е','Ж','З','И','Ј','К','Л','Љ','М','Н','Њ','О','П','Р','С','Т','Ћ','У','Ф','Х','Ц','Ч','Џ','Ш');
+	$lat = array('a','b','v','g','d','đ','e','ž','z','i','j','k','l','lj','m','n','nj','o','p','r','s','t','ć','u','f','h','c','č','dž','š','A','B','V','G','D','Đ','E','Ž','Z','I','J','K','L','Lj','M','N','Nj','O','P','R','S','T','Ć','U','F','H','C','Č','Dž','Š');
+	return  str_replace($cyr, $lat, $x);
+}
+
+function iscyr($x){
+	$cyr = array('а','б','в','г','д','ђ','е','ж','з','и','ј','к','л','љ','м','н','њ','о','п','р','с','т','ћ','у','ф','х','ц','ч','џ','ш','А','Б','В','Г','Д','Ђ','Е','Ж','З','И','Ј','К','Л','Љ','М','Н','Њ','О','П','Р','С','Т','Ћ','У','Ф','Х','Ц','Ч','Џ','Ш');
+	foreach ($cyr as $c){
+		if (strpos($x, $c)){ return true; }
+	}
+	return false;
+}
+
+
 if (is_null($style)):
     $style = 'chicago-fullnote-bibliography';
 endif;
@@ -48,16 +64,17 @@ else:
     // Format: only pseudo-Chicago is managed when there is no csl.
 
     $citation = '';
-
-    $creators = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][2]['@value'] ? [$defaults['dcterms:creator'][2]['@value']] : []);
+    $creators = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][0]['@value'] ? [$defaults['dcterms:creator'][0]['@value']] : []);
     // Strip formatting and remove empty creator elements.
-	
+	$title = $resource->displayTitle();
     $creators = array_values(array_filter(array_map('strip_tags', $creators)));
 	
 	foreach($creators as $k=>$c){
 		if (strpos($c, "item-set/")){
 			$id = explode("item-set/", $c)[1];
-			$creators[$k] = $api->read('item_sets', $id )->getContent()->value('dcterms:title');
+			$cname = $api->read('item_sets', $id )->getContent()->value('dcterms:title');
+			if (!iscyr($title)){$cname = trans($cname);}
+			$creators[$k] = $cname;
 		}
 	}
 	
@@ -84,7 +101,6 @@ else:
 
 
     $source = $resource->value('dcterms:source') ?: @$defaults['dcterms:source'][0]['@value'];
-    $title = $resource->displayTitle();
 	$number = $resource->value('rgf:bibliographicCitationIssue') ?: @$defaults['rgf:bibliographicCitationIssue'][0]['@value'];
 	$volume = $resource->value('rgf:bibliographicCitationVolume') ?: @$defaults['rgf:bibliographicCitationVolume'][0]['@value'];
 	$date = $resource->value('dcterms:issued') ?: @$defaults['dcterms:issued'][0]['@value'];
