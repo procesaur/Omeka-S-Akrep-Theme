@@ -70,11 +70,22 @@
 
 
     function prepareFrame(e, src) {
-        var ifrm = document.createElement("iframe");
-        ifrm.setAttribute("src", src);
-        ifrm.style.width = "100%";
-        ifrm.style.height = "600px";
-		ifrm.setAttribute("allowfullscreen", "");
+		
+		values = [".jpg", ".png", ".jpeg", ".bmp", ".JPG", ".PNG", ".JPEG", ".BMP"]
+		isFound = values.some(substring=>src.includes(substring))
+
+		if (isFound){
+			var ifrm = document.createElement("img");
+			ifrm.setAttribute("src", src);
+			ifrm.style.width = "100%";
+		}
+		else{
+			var ifrm = document.createElement("iframe");
+			ifrm.setAttribute("src", src);
+			ifrm.style.width = "100%";
+			ifrm.style.height = "600px";
+			ifrm.setAttribute("allowfullscreen", "");
+		}
         return ifrm;
     }
 
