@@ -107,6 +107,8 @@ else:
 	$page = $resource->value('rgf:bibliographicCitationSpage') ?: @$defaults['rgf:bibliographicCitationSpage'][0]['@value'];
 	$topage = $resource->value('rgf:bibliographicCitationEpage') ?: @$defaults['rgf:bibliographicCitationEpage'][0]['@value'];
 	$doi = $resource->value('bibo:doi') ?: @$defaults['bibo:doi'][0]['@value'];
+	$kat = $resource->value('rgf:identifierSubcategory') ?: @$defaults['rgf:identifierSubcategory'][0]['@value'];
+
 	
 	
 	if ($source):
@@ -148,8 +150,12 @@ else:
 	
 	
 	if ($doi):
-        $citation .= '. https://doi.org/' . $doi;
-    endif;
+        	$citation .= '. https://doi.org/' . $doi;
+	endif;
+
+	if ($kat && $this->themeSetting('citecat')):
+		$citation .= ' ' . $kat;
+    	endif;
     
 endif;
 
