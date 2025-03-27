@@ -21,6 +21,10 @@
     }
 
     $(document).ready(function() {
+
+
+
+
         $('header nav').addClass('closed');
 
         $('header nav').click(function() {
@@ -133,6 +137,36 @@ function export_all(){
 tab.document.write(exp); // where 'html' is a variable containing your HTML
 tab.document.close();
 
+}
+
+
+function checkTitleAvailability(title, t="naslovi") {
+  const xhr = new XMLHttpRequest(); // Create an XMLHttpRequest object
+    const url = 'https://oai.dr.rgf.bg.ac.rs/' + t +'/';
+    
+    // Open a synchronous POST request
+    xhr.open("POST", url, false);
+    
+    // Set the Content-Type header
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    // Send the request with the JSON payload
+    xhr.send(JSON.stringify({ title: title.trim() }));
+
+    // Handle the response
+    if (xhr.status === 200) { // Check if the request was successful
+        try {
+            const result = JSON.parse(xhr.responseText); // Parse the JSON response
+            console.log("Parsed JSON:", result);
+            return result.available; // Return true/false based on the response
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            return false; // Assume unavailable in case of a parsing error
+        }
+    } else {
+        console.error("Request failed with status:", xhr.status);
+        return false; // Assume unavailable if the request fails
+    }
 }
 
 

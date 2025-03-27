@@ -87,7 +87,9 @@ $content = $this->content;
 				<?php endif; ?>;
 				height: <?php echo $bannerHeight; ?>;
 				background-color: #fff;
-				margin-bottom: 55px
+				margin-bottom: 55px;
+				background-repeat: no-repeat;
+				background-position: right;
 			}
 			
 			
@@ -163,10 +165,10 @@ $content = $this->content;
         });
 		
 		
-		$.each($("[name^='prompt_']"), function(){
-			this.className = this.name.split("__")[1];
-			this.name = this.name.split("__")[0];
-		});
+		//$.each($("[name^='prompt_']"), function(){
+			//this.className = this.name.split("_")[1];
+			//this.name = this.name.split("_")[0];
+		//});
 
 		<?php if($doifill_on > 0){
 		echo "let prompt_map = [";
@@ -178,10 +180,26 @@ $content = $this->content;
 		}
 		echo "];";		
 		?> 
-		prompt_map.forEach((x) => {
-			$('[name='+x[0]+']').addClass(x[1]);	  
-		});
-		<?php } ?> 	
+
+prompt_map.forEach(([name, className]) => {
+    const element = $(`[name='${name}']`);
+    if (element.length) {
+        element.addClass(className); // Add the class
+        element.attr("name", name.split("__")[0]); // Update the name
+if (className === "title") {
+            element.on("change", function () {
+                const value = this.value.trim();
+                if (value) {
+                    const isAvailable = checkTitleAvailability(value);
+	console.log(isAvailable);
+                    if (!isAvailable) {
+                        alert("Рад са тим насловом је већ похрањен!");
+                    }
+                }
+            });
+        }
+    }
+});		<?php } ?> 	
 
 		if($(".citex").length == 0) {
 		  $("#export_all").remove();
