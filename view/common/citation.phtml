@@ -33,151 +33,108 @@ if (!function_exists('iscyr'))   {
 		return false;
 	}
 }
+if (!function_exists('formatAPAAuthors'))   {
+	function formatAPAAuthors($creatorList) {
+		$formatted = [];
 
-if (is_null($style)):
-    $style = 'chicago-fullnote-bibliography';
-endif;
+		foreach ($creatorList as $creator) {
+			$parts = explode(' ', trim($creator));
+			if (count($parts) < 2) continue;
 
-try {
-    $style = @\Seboettg\CiteProc\StyleSheet::loadStyleSheet($style);
-} catch (\Seboettg\CiteProc\Exception\CiteProcException $e) {
-    $style = null;
-}
+			$first = array_shift($parts); // First word is the given name
+			$last = implode(' ', $parts); // All remaining words are the surname
 
-if ($style):
+			$initial = strtoupper(mb_substr($first, 0, 1)) . '.';
 
-    $citeProc = new \Seboettg\CiteProc\CiteProc($style, $locale);
-    $csl = $this->rdfToCsl($resource, $defaults);
-    // CiteProc fails when the metadata are incomplete.
-    try {
-        $citation = @$citeProc->render([$csl], 'bibliography');
-    } catch (\Exception $e) {
-        $vars = $this->vars();
-        $vars->offsetSet('style', '');
-        echo $this->partial('common/citation', $this->vars());
-        return;
-    }
-    $citation = mb_substr($citation, 52, -13);
+			$formatted[] = "{$last}, {$initial}";
+		}
 
-else:
-
-    // Format: only pseudo-Chicago is managed when there is no csl.
-
-    $citation = '';
-    $creators = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][0]['@value'] ? [$defaults['dcterms:creator'][0]['@value']] : []);
-    // Strip formatting and remove empty creator elements.
-	$title = $resource->displayTitle();
-    $creators = array_values(array_filter(array_map('strip_tags', $creators)));
-	
-	foreach($creators as $k=>$c){
-		if (strpos($c, "item-set/")){
-			$id = explode("item-set/", $c)[1];
-			$cname = $api->read('item_sets', $id )->getContent()->value('dcterms:title');
-			if (!iscyr($title)){$cname = trans($cname);}
-			$creators[$k] = $cname;
+		$count = count($formatted);
+		if ($count === 1) {
+			return $formatted[0];
+		} elseif ($count === 2) {
+			return "{$formatted[0]} & {$formatted[1]}";
+		} else {
+			return implode(', ', array_slice($formatted, 0, $count - 1)) . ', & ' . $formatted[$count - 1];
 		}
 	}
+
+}
+
+
+$citation = '';
+$title = $resource->displayTitle();
 	
-    if ($creators) {
-        switch (count($creators)):
-        case 1:
-            $creator = $creators[0];
-            break;
-        case 2:
-            // Chicago-style item citation: two authors.
-            $creator = sprintf($translate('%1$s and %2$s'), $creators[0], $creators[1]);
-            break;
-        case 3:
-            // Chicago-style item citation: three authors.
-            $creator = sprintf($translate('%1$s, %2$s, and %3$s'), $creators[0], $creators[1], $creators[2]);
-            break;
-        default:
-            // Chicago-style item citation: more than three authors.
-            $creator = sprintf($translate('%s et al.'), $creators[0]);
-            break;
-        endswitch;
-        $citation .= $creator;
+	
+$creatorsRaw = $resource->value('dcterms:creator', ['all' => true]) ?: (@$defaults['dcterms:creator'][0]['@value'] ? [$defaults['dcterms:creator'][0]['@value']] : []);
+$creatorsRaw = array_values(array_filter(array_map('strip_tags', $creatorsRaw)));
+
+$creatorList = [];
+
+if (count($creatorsRaw) === 1 && strpos($creatorsRaw[0], ',') !== false) {
+    // Case 1: Single string with comma-separated names
+    $creatorList = array_map('trim', explode(',', $creatorsRaw[0]));
+} else {
+    // Case 2: Already split into individual names
+    $creatorList = array_map('trim', $creatorsRaw);
+}
+
+	
+if ($creatorList) {
+	$creatorAPA = formatAPAAuthors($creatorList);
+	$citation .= $creatorAPA;
+}
+
+$source = $resource->value('dcterms:source') ?: @$defaults['dcterms:source'][0]['@value'];
+$number = $resource->value('rgf:bibliographicCitationIssue') ?: @$defaults['rgf:bibliographicCitationIssue'][0]['@value'];
+$volume = $resource->value('rgf:bibliographicCitationVolume') ?: @$defaults['rgf:bibliographicCitationVolume'][0]['@value'];
+$date = $resource->value('dcterms:issued') ?: @$defaults['dcterms:issued'][0]['@value'];
+$page = $resource->value('rgf:bibliographicCitationSpage') ?: @$defaults['rgf:bibliographicCitationSpage'][0]['@value'];
+$topage = $resource->value('rgf:bibliographicCitationEpage') ?: @$defaults['rgf:bibliographicCitationEpage'][0]['@value'];
+$doi = $resource->value('bibo:doi') ?: @$defaults['bibo:doi'][0]['@value'];
+$kat = $resource->value('rgf:identifierSubcategory') ?: @$defaults['rgf:identifierSubcategory'][0]['@value'];
+
+	
+	// Year
+if ($date) {
+    $citation .= ' (' . $date . ').';
+}
+
+// Title
+if ($title) {
+    $citation .= ' "' . $title . '".';
+}
+
+// Source (Journal name)
+if ($source) {
+    $citation .= ' <i>' . $source . '</i>';
+}
+
+// Volume and issue
+if ($volume) {
+    $citation .= ', ' . $volume;
+    if ($number) {
+        $citation .= '(' . $number . ')';
     }
+}
 
+// Page range
+if ($page) {
+    $citation .= ', ' . $page;
+    if ($topage) {
+        $citation .= '-' . $topage;
+    }
+}
 
-    $source = $resource->value('dcterms:source') ?: @$defaults['dcterms:source'][0]['@value'];
-	$number = $resource->value('rgf:bibliographicCitationIssue') ?: @$defaults['rgf:bibliographicCitationIssue'][0]['@value'];
-	$volume = $resource->value('rgf:bibliographicCitationVolume') ?: @$defaults['rgf:bibliographicCitationVolume'][0]['@value'];
-	$date = $resource->value('dcterms:issued') ?: @$defaults['dcterms:issued'][0]['@value'];
-	$page = $resource->value('rgf:bibliographicCitationSpage') ?: @$defaults['rgf:bibliographicCitationSpage'][0]['@value'];
-	$topage = $resource->value('rgf:bibliographicCitationEpage') ?: @$defaults['rgf:bibliographicCitationEpage'][0]['@value'];
-	$doi = $resource->value('bibo:doi') ?: @$defaults['bibo:doi'][0]['@value'];
-	$kat = $resource->value('rgf:identifierSubcategory') ?: @$defaults['rgf:identifierSubcategory'][0]['@value'];
+// DOI
+if ($doi) {
+    $citation .= '. https://doi.org/' . $doi;
+}
 
-	
-	
-	if ($source):
-		$citation .= ($citation ? '. ' : '') . '"' . $title . '"';
-        $citation .= ' in <i>' . $source . '</i>';
-	else:
-		$citation .= ($citation ? '. ' : '') . '<i>' . $title . '</i>';
-    endif;
+// Optional category tag
+if ($kat && $this->themeSetting('citecat')) {
+    $citation .= ' ' . $kat;
+}
 
-	if ($volume):
-		$citation .= ' ' . $volume;
-	endif;
-	
-	if ($number):
-		$citation .= ' no. ' . $number;
-	endif;
-	
-	
-
-    $publisher = $resource->value('dcterms:publisher') ?: @$defaults['dcterms:publisher'][0]['@value'];
-    if ($publisher):
-        $citation .= ', ' . $publisher;
-    endif;
-
-	if ($date):
-		if ($source):
-			$citation .= ' (' . $date. ')';
-		else:
-			$citation .= ', ' . $date;
-		endif;
-    endif;
-	
-	if ($page):
-		$citation .= ': ' . $page;
-		if ($topage):
-		$citation .= '-' . $topage;
-		endif;
-	endif;
-	
-	
-	if ($doi):
-        	$citation .= '. https://doi.org/' . $doi;
-	endif;
-
-	if ($kat && $this->themeSetting('citecat')):
-		$citation .= ' ' . $kat;
-    	endif;
-    
-endif;
-
-$append_date = false;
-$append_site = false;
-
-if ($append_site || $append_date):
-    $citation = rtrim($citation, '. ');
-
-    if ($append_site):
-        if ($site = $this->viewModel()->getRoot()->getVariable('site')):
-            $citation .= ', <i>' . $site->title() . '</i>';
-        endif;
-    endif;
-
-    if ($append_date):
-        $accessed = $escape($this->i18n()->dateFormat(new \DateTime(), \Omeka\View\Helper\I18n::DATE_FORMAT_LONG));
-        $url = '<span class="citation-url">' . $escape($resource->url(null, true)) . '</span>';
-        // Chicago-style item citation: access date and URL.
-        $citation .= ', ' . sprintf($translate('accessed %1$s, %2$s'), $accessed, $url);
-    endif;
-
-endif;
 
 echo empty($tag) ? $citation : "<$tag class=\"citation\">$citation</$tag>";
